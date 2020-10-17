@@ -1,7 +1,13 @@
 {
-    "python.formatting.provider": "black",
     "python.pythonPath": "venv\\Scripts\\python.exe",
-    "editor.formatOnSave": false,
+    
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.lintOnSave": true,
+    "python.formatting.provider": "autopep8",
+
+    "editor.formatOnSave": true,
     "editor.formatOnPaste": false,
     "terminal.integrated.env.windows": {
         "PSExecutionPolicyPreference": "RemoteSigned"

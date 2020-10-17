@@ -24,7 +24,7 @@ def get_abs_path(file_path: str, *args, num: int = 0):
     # データを保存するディレクトリを作成
     if args:
         # パスの最後がファイルの場合は親ディレクトリまでのディレクトリを作成
-        if Path(args[len(args) - 1]).suffix != '':
+        if Path(args[-1]).suffix != '':
             Path(file_path).resolve().parents[num].joinpath(
                 *args).parent.mkdir(parents=True, exist_ok=True)
         else:

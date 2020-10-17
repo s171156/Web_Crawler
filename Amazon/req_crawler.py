@@ -61,7 +61,7 @@ class AmazonCrawler:
         '''
         try:
             response.raise_for_status()
-        except  as exc:
+        except Exception as exc:
             print(f'問題が発生しました。\nstatus_code：{exc}')
 
     def get_base_soup(self, url: str):
