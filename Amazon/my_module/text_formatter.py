@@ -12,6 +12,18 @@ def remove_url(text):
     return re.sub(repatter, '', text)
 
 
+def format_tweets(text):
+    '''
+    MeCabに入れる前のツイートの整形
+    '''
+    text = re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)
+    text = re.sub('RT', "", text)
+    text = re.sub(r'[!-~]', "", text)  # 半角記号,数字,英字
+    text = re.sub(r'[︰-＠]', "", text)  # 全角記号
+    text = re.sub('\n', " ", text)  # 改行文字
+    return text
+
+
 def extract_date_ymd(text: str) -> list:
     '''
     文字列から「YYYY年MM月DD日」を抽出します。
