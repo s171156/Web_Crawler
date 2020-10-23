@@ -192,21 +192,21 @@ class ReviewCrawler:
             # セレニウムで検索します。
             self.driver.get(url)
             # 1秒スリープします。
-            time.sleep(1)
+            time.sleep(2)
             # カスタマーレビューを日付順にソートします。
             self.sort_by_date()
             while True:
                 # 1秒スリープします。
-                time.sleep(1)
+                time.sleep(2)
                 # HTMLを取得してBS4でパースします。
                 self.get_html_soup()
                 # 1秒スリープします。
-                time.sleep(1)
+                time.sleep(2)
                 # カスタマーレビューを収集します。
                 if self.get_reviews_bs4(is_existing) is False:
                     break
                 # 1秒スリープします。
-                time.sleep(1)
+                time.sleep(2)
                 # 次のページへ遷移します。
                 if self.transition_next_page() is False:
                     break

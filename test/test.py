@@ -282,10 +282,10 @@ def get_ASIN_by_pr():
 
 if __name__ == "__main__":
     # read_df()
-    # test_datetime()
+    test_datetime()
     # get_product_name()
     # test_dict()
     # get_ASIN_by_pr()
     # join_dict()
-    generate_log_csv()
+    # generate_log_csv()
     pass

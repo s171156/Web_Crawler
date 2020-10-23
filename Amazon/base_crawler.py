@@ -263,9 +263,14 @@ class ReviewParser:
             dict_reviews['dates'].append(
                 review.select_one(s_date).text.strip())
             # print(15)
-            dict_reviews['kinds'].append(
-                review.select_one(s_kind).text.strip())
+            # 種類の記載がない場合があるため
+            try:
+                dict_reviews['kinds'].append(
+                    review.select_one(s_kind).text.strip())
+            except AttributeError:
+                dict_reviews['kinds'].append(None)
             # print(16)
+            # 販売店の記載がない場合があるため
             try:
                 dict_reviews['shops'].append(
                     review.select_one(s_shop).text.strip())
@@ -275,6 +280,7 @@ class ReviewParser:
             dict_reviews['comments'].append(
                 review.select_one(s_comment).text.strip())
             # print(18)
+            # 投票の記載がない場合があるため
             try:
                 dict_reviews['votes'].append(
                     review.select_one(s_vote).text.strip())
