@@ -1,7 +1,7 @@
 # Selenium Module
 import chromedriver_binary
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, TimeoutException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,6 +16,8 @@ from my_module.path_manager import get_abs_path
 from base_crawler import ReviewParser, URLValidator, ReviewCSVGenerator
 import time
 from datetime import datetime as dt
+from random import randint
+import traceback
 
 
 class ReviewCrawler:
@@ -29,7 +31,7 @@ class ReviewCrawler:
         # ヘッドレスモードでクロール
         self.option.add_argument('--headless')
         self.driver = webdriver.Chrome(options=self.option)
-        self.driver.implicitly_wait(10)
+        self.driver.implicitly_wait(30)
 
         # インスタンスの生成
         self.r_parser = ReviewParser()
@@ -111,8 +113,37 @@ class ReviewCrawler:
                 EC.presence_of_element_located((By.ID, 'cm_cr-pagination_bar')))
             self.driver.find_element_by_xpath(
                 '//*[@id="cm_cr-pagination_bar"]/ul/li[2]/a').click()
-            # self.get_html_soup()
             return True
+
+        except (ElementClickInterceptedException, StaleElementReferenceException, TimeoutException) as e:
+            print(e)
+            lim = 3
+            for i in range(lim):
+                print(f'リトライ処理：{i+1}回目     残りの試行回数{lim-i-1}回')
+                time.sleep(2)
+                print('ページの再読み込みを実施します。')
+                self.driver.refresh()
+                print('ページの再読み込みを実施しました。')
+                try:
+                    WebDriverWait(self.driver, 30).until(
+                        EC.element_to_be_clickable((By.ID, 'cm_cr-pagination_bar')))
+                    self.driver.find_element_by_xpath(
+                        '//*[@id="cm_cr-pagination_bar"]/ul/li[2]/a').click()
+                    # target = self.driver.find_element_by_xpath('//*[@id="cm_cr-pagination_bar"]/ul/li[2]/a')
+                    # self.driver.execute_script("arguments[0].click();", target)
+                except Exception as e:
+                    print(e)
+                    traceback.print_exc()
+                else:
+                    return True
+            else:
+                print('次のページの読込みに失敗しました。')
+                print('CSVを生成します。')
+                ReviewCSVGenerator.generate_csv_from_dict(
+                    self.dict_review, self.file_path['review'])
+                print('CSVの生成が完了しました。')
+                return False
+
         except NoSuchElementException:
             print('最後のページに到達しました。\nCSVを生成します。')
             ReviewCSVGenerator.generate_csv_from_dict(
@@ -134,8 +165,12 @@ class ReviewCrawler:
         '''
         カスタマーレビューを「新しい順」にソートします。
         '''
+        WebDriverWait(self.driver, 15).until(
+            EC.element_to_be_clickable((By.ID, "a-autoid-4-announce")))
         self.driver.find_element_by_xpath(
             '//*[@id="a-autoid-4-announce"]').click()
+        WebDriverWait(self.driver, 15).until(
+            EC.element_to_be_clickable((By.ID, "sort-order-dropdown_1")))
         self.driver.find_element_by_xpath(
             '//*[@id="sort-order-dropdown_1"]').click()
 
@@ -176,62 +211,61 @@ class ReviewCrawler:
         '''
         カスタマーレビューを収集します。
         '''
-        try:
-            # URLの妥当性を検証します。
-            if URLValidator.validate(url) is False:
-                print('不正なURLです\nプログラムを終了します。')
-                sys.exit()
-            # URLを短縮します。
-            url = URLValidator.shorten(url)
-            # 商品ページのURLを商品レビューページのURLに置換します。
-            url = URLValidator.generate_review(url)
-            # 各種CSVのパスをセットします。
-            self.set_csv_path(url)
-            # 各種CSVが既存であるか確認します。
-            is_existing = Path(self.file_path['review']).exists()
-            # セレニウムで検索します。
-            self.driver.get(url)
-            # 1秒スリープします。
-            time.sleep(2)
-            # カスタマーレビューを日付順にソートします。
-            self.sort_by_date()
-            while True:
+        # URLの妥当性を検証します。
+        if URLValidator.validate(url) is False:
+            print('不正なURLです\nプログラムを終了します。')
+            sys.exit()
+        # URLを短縮します。
+        url = URLValidator.shorten(url)
+        # 商品ページのURLを商品レビューページのURLに置換します。
+        url = URLValidator.generate_review(url)
+        # 各種CSVのパスをセットします。
+        self.set_csv_path(url)
+        # 各種CSVが既存であるか確認します。
+        is_existing = Path(self.file_path['review']).exists()
+        # セレニウムで検索します。
+        self.driver.get(url)
+        # カスタマーレビューを日付順にソートします。
+        self.sort_by_date()
+        while True:
+            try:
                 # 1秒スリープします。
-                time.sleep(2)
+                time.sleep(randint(1, 3))
                 # HTMLを取得してBS4でパースします。
                 self.get_html_soup()
-                # 1秒スリープします。
-                time.sleep(2)
                 # カスタマーレビューを収集します。
                 if self.get_reviews_bs4(is_existing) is False:
                     break
-                # 1秒スリープします。
-                time.sleep(2)
                 # 次のページへ遷移します。
                 if self.transition_next_page() is False:
                     break
-            # ログを生成します。
-            self.generate_log_csv(url, status='SUCCEED')
-        except Exception:
-            # ログを生成します。
-            self.generate_log_csv(url, status='FAILED')
-        finally:
-            # セレニウムを終了します。
-            self.driver.quit()
+            except Exception as e:
+                print(e)
+                traceback.print_exc()
+                # セレニウムを終了します。
+                self.driver.quit()
+                # ログを生成します。
+                self.generate_log_csv(url, status='FAILED')
+                return
+            else:
+                pass
+        # セレニウムを終了します。
+        self.driver.quit()
+        # ログを生成します。
+        self.generate_log_csv(url, status='SUCCEED')
 
 
 if __name__ == "__main__":
 
-    # 各種インスタンスの生成
-    crawler = ReviewCrawler()
-    questionnaire = questionnaire.Questionnaire()
-
     print('ようこそ！')
     print('本プログラムはAmzonのカスタマーレビューを収集するものです。')
     print('商品ページのURLを入力してください。')
+    # インスタンスの生成
+    questionnaire = questionnaire.Questionnaire()
     # URLを標準入力から取得します。
     url = questionnaire.ask_url()
-    # url = r'https://www.amazon.co.jp/dp/B00840PFXU/'
-    # url = r'http://www.amazon.jp/product-reviews/B00840PFXU/'
+
+    # インスタンスの生成
+    crawler = ReviewCrawler()
     crawler.collect(url)
     print('プログラムを終了します。')
