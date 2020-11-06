@@ -25,6 +25,10 @@ requirements.txtを参照してください。
 Requirementで列挙したライブラリなどのインストール方法を説明する
 
 ```
+# 仮想環境を利用する場合
+$ cd [project dir]
+$ python3 -m venv [newenvname]
+
 $ pip install -r requirements.txt
 ```
 
@@ -33,8 +37,15 @@ $ pip install -r requirements.txt
 DEMOの実行方法など、"hoge"の基本的な使い方を説明する  
 ### Amazon
 ```
+$ cd [any directory]
 $ git clone https://github.com/s171156/Web_Crawler.git
 $ cd ~/Crawler
+
+# Windows
+$ .\[envname]\Scripts\activate
+# Linux,Mac
+$ . [newenvname]/bin/activate
+
 $ python ./selen_crawler.py
 $ https://www.Amazon.co.jp/dp/ASIN
 ```
@@ -52,7 +63,18 @@ __Twitterのアクセストークンは含まれていません。__
 Twitterのスクレイピングをご利用になる場合は以下の手順に従ってください。  
 #### \[手順]
 1. TwitterのAPIキーの入手
-1. テンプレートファイルの編集
+1. 環境変数ファイル(Web_Crawler/Twitter/env/.env.template)の編集  
+1. 環境変数ファイルのリネーム  
+```
+# TwitterのAPI_Key
+API_Key = "XXXXXXXXXX"
+API_Secret_Key = "XXXXXXXXXXXXXXXXXXXX"
+# TwitterのAccess_Token
+Access_Token = "XXXXXXXXXX"
+Access_Token_Secret = "XXXXXXXXXXXXXXXXXXXX"
+```
+> Web_Crawler/Twitter/env/.env.template
+>> Web_Crawler/Twitter/env/.env
 
 # Author
 
