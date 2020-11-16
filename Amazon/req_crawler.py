@@ -32,10 +32,10 @@ class AmazonCrawler:
         '''
         商品ページのURLを短縮します。
         '''
-        pattern = r'dp/\w+/'
+        pattern = r'dp/\w+[/?]'
         repatter = re.compile(pattern)
         dp = re.search(repatter, url).group()
-        url = 'https://www.amazon.co.jp/' + dp
+        url = 'https://www.amazon.co.jp/' + dp[:-1]
         return url
 
     def shorten_next_url(self, url: str):

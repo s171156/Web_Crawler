@@ -1,5 +1,5 @@
 # Selenium Module
-import chromedriver_binary
+# import chromedriver_binary
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, TimeoutException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
@@ -28,6 +28,8 @@ class ReviewCrawler:
     def __init__(self):
         # ドライバのセットアップ
         self.option = webdriver.ChromeOptions()
+        # Ubuntuの場合
+        self.option.binary_location = '/usr/bin/google-chrome'
         # ヘッドレスモードでクロール
         self.option.add_argument('--headless')
         self.driver = webdriver.Chrome(options=self.option)
